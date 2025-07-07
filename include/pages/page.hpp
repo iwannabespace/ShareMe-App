@@ -4,6 +4,7 @@
 #include <SFML/Graphics.hpp>
 #include <type_traits>
 #include "../widgets/messenger.hpp"
+#include "../socket/socket_client.hpp"
 
 namespace ShareMe
 {
@@ -12,7 +13,7 @@ namespace ShareMe
     class Page : public sf::Drawable
     {
     protected:
-        Page(PageManager& manager, Messenger& messager);
+        Page(PageManager& manager, Messenger& messager, SocketClient& client);
     public:
         virtual void on_window_resize(const sf::RenderWindow& window);
         virtual void on_hover_items(const sf::RenderWindow& window);
@@ -33,6 +34,7 @@ namespace ShareMe
     protected:
         PageManager& pageManager;
         Messenger& messenger;
+        SocketClient& socketClient;
     };
 }
 

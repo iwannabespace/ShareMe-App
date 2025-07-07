@@ -22,7 +22,7 @@ namespace ShareMe
         ~Messenger();
         void on_window_resize(const sf::RenderWindow& window);
         void addMessage(const std::string& message, int32_t duration = 3000);
-        void update(float deltaTime);
+        void update();
     private:
         void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
     private:
@@ -34,7 +34,7 @@ namespace ShareMe
         bool animationEndStart = false;
         float intendedShowYPosition = 0;
         float intendedEndYPosition = 0;
-        float animationSpeed = 10000;
+        float animationSpeed = 0.5;
     };
 }
 

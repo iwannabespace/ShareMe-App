@@ -2,6 +2,7 @@
 #define HOME_PAGE_HPP
 
 #include "page.hpp"
+#include "../api/authorization_data.hpp"
 #include <string>
 
 namespace ShareMe
@@ -9,7 +10,7 @@ namespace ShareMe
     class HomePage : public Page
     {
     public:
-        HomePage(sf::Vector2f winSize, sf::Font& primaryFont, sf::Font& secondaryFont, PageManager& pageManager, Messenger& messenger);
+        HomePage(sf::Vector2f winSize, sf::Font& primaryFont, sf::Font& secondaryFont, PageManager& pageManager, Messenger& messenger, SocketClient& client);
         ~HomePage();
         void on_window_resize(const sf::RenderWindow& window) override;
         void on_hover_items(const sf::RenderWindow& window) override;
@@ -20,14 +21,14 @@ namespace ShareMe
         void on_key_pressed(sf::Keyboard::Key key) override;
         void draw_render_texture() override;
         void animation_update() override;
-        void setUserId(const std::string& userId);
+        void setAuthData(const AuthorizationData& authData);
     private:
         void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
     private:
         sf::Text text;
         sf::Font& primaryFont;
         sf::Font& secondaryFont;
-        std::string userId;
+        AuthorizationData authData;
     };
 }
 

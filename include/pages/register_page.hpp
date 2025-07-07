@@ -15,7 +15,7 @@ namespace ShareMe
     class RegisterPage : public Page
     {
     public:
-        RegisterPage(sf::Vector2f winSize, sf::Font& primaryFont, sf::Font& secondaryFont, PageManager& pageManager, Messenger& messenger);
+        RegisterPage(sf::Vector2f winSize, sf::Font& primaryFont, sf::Font& secondaryFont, PageManager& pageManager, Messenger& messenger, SocketClient& client);
         ~RegisterPage();
         void on_window_resize(const sf::RenderWindow& window) override;
         void on_hover_items(const sf::RenderWindow& window) override;
@@ -28,6 +28,8 @@ namespace ShareMe
         void animation_update() override;
         void on_register();
         void on_verify();
+    private:
+        void handle_register();
     private:
         void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
     private:

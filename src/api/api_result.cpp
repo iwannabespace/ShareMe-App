@@ -2,20 +2,20 @@
 
 namespace ShareMe
 {
-    std::ostream& operator<<(std::ostream& os, const ApiResult& result)
+    std::ostream& operator<<(std::ostream& os, const ApiResultType& result)
     {
         switch (result) {
-            case ApiResult::None: os << "None"; break;
-            case ApiResult::Success: os << "Success"; break;
-            case ApiResult::InvalidCredentials: os << "InvalidCredentials"; break;
-            case ApiResult::VerificationError: os << "VerificationError"; break;
-            case ApiResult::ValidationError: os << "ValidationError"; break;
-            case ApiResult::UserNotActive: os << "UserNotActive"; break;
-            case ApiResult::UserNotFound: os << "UserNotFound"; break;
-            case ApiResult::UserExists: os << "UsersExists"; break;
-            case ApiResult::InvalidMail: os << "InvalidMail"; break;
-            case ApiResult::ServerError: os << "ServerError"; break;
-            case ApiResult::Unreachable : os << "Unreachable"; break;
+            case ApiResultType::None: os << "None"; break;
+            case ApiResultType::Success: os << "Success"; break;
+            case ApiResultType::InvalidCredentials: os << "InvalidCredentials"; break;
+            case ApiResultType::UserVerificationError: os << "UserVerificationError"; break;
+            case ApiResultType::ValidationError: os << "ValidationError"; break;
+            case ApiResultType::UserNotActive: os << "UserNotActive"; break;
+            case ApiResultType::UserNotFound: os << "UserNotFound"; break;
+            case ApiResultType::UserExists: os << "UsersExists"; break;
+            case ApiResultType::InvalidMail: os << "InvalidMail"; break;
+            case ApiResultType::ServerError: os << "ServerError"; break;
+            case ApiResultType::Unreachable : os << "Unreachable"; break;
         }
         return os;
     }

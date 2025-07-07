@@ -37,6 +37,8 @@ namespace ShareMe
         void setFocusedColor(sf::Color color);
         void setTextColor(sf::Color color);
         void setPlaceholderColor(sf::Color color);
+        void enableError(const std::string& errorMessage);
+        void disableError();
         sf::Vector2f getPosition() const;
         sf::Vector2f getSize() const;
         std::string value() const;
@@ -50,10 +52,11 @@ namespace ShareMe
         sf::RectangleShape cover;
         sf::Text text;
         sf::Text placeholder_text;
+        sf::Text errorText;
         sf::String string;
         sf::String placeholder_str;
         sf::Font& font;
-        sf::Color color;
+        sf::Color color, colorCopy;
         sf::Color hovered_color;
         sf::Color focused_color;
         sf::Color enabled_color;
@@ -66,6 +69,7 @@ namespace ShareMe
         bool selected;
         bool enabled = true;
         bool numberOnly = false;
+        bool showError = false;
     };
 }
 

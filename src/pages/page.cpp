@@ -9,7 +9,10 @@
 
 namespace ShareMe
 {
-    Page::Page(PageManager& manager, Messenger& messenger) : pageManager(manager), messenger(messenger) { }
+    Page::Page(PageManager& manager, Messenger& messenger, SocketClient& socketClient)
+        : pageManager(manager),
+            messenger(messenger), 
+            socketClient(socketClient) { }
 
     void Page::on_window_resize(const sf::RenderWindow& window)
     {

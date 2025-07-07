@@ -2,12 +2,13 @@
 #include "../../include/pages/home_page.hpp"
 #include "../../include/utils/functions.hpp"
 #include "../../include/utils/theme.hpp"
+#include "../../include/utils/validator.hpp"
 #include <iostream>
 
 namespace ShareMe
 {
-    LoginPage::LoginPage(sf::Vector2f winSize, sf::Font& primaryFont, sf::Font& secondaryFont, PageManager& pageManager, Messenger& messenger)
-        : Page(pageManager, messenger),
+    LoginPage::LoginPage(sf::Vector2f winSize, sf::Font& primaryFont, sf::Font& secondaryFont, PageManager& pageManager, Messenger& messenger, SocketClient& client)
+        : Page(pageManager, messenger, client),
           emailTextbox(secondaryFont, "Email"),
           passwordTextbox(secondaryFont, "Password"),
           loginButton(secondaryFont, "Login", 8),
@@ -63,7 +64,7 @@ namespace ShareMe
         });
 
         description.setFont(primaryFont);
-        description.setString("Share your thoughts wiht us!");
+        description.setString("Share your thoughts with us!");
         description.setCharacterSize(16);
         description.setFillColor(Theme::OnBackground);
         description.setStyle(sf::Text::Italic);
@@ -72,20 +73,16 @@ namespace ShareMe
             title.getPosition().y + title.getGlobalBounds().height + 20
         });
 
-        registerLink.setCallback([this]() {
-            this->pageManager.switchTo(PageType::Register);
+        registerLink.setCallback([&pageManager = this->pageManager]() {
+            pageManager.switchTo(PageType::Register);
         });
 
-        loginButton.setCallback([this]() {
-            std::string email = this->emailTextbox.value();
-            std::string password = this->passwordTextbox.value();
-            if (!email.empty() && !password.empty()) {
-                this->loginFuture = Api::Login(email, password);
-                this->signing = true;
-                this->showLoadingAnimation = true;
-            } else {
-                this->messenger.addMessage("All fields are required");
-            }
+        loginButton.setCallback([&]() { 
+            bool result = client.send({ 7, 100 });
+            
+            std::cout << std::boolalpha << std::endl;
+
+            handle_login(); 
         });
     }
 
@@ -161,47 +158,71 @@ namespace ShareMe
 
     void LoginPage::on_login()
     {
-        if (signing)
+        if (gettingSalt)
+        {
+            if (getSaltFuture.wait_for(std::chrono::milliseconds(0)) == std::future_status::ready)
+            {
+                auto getSaltResult = getSaltFuture.get();
+                auto apiResult = getSaltResult.result;
+                auto params = ApiResultHandler::MessageParams();
+                auto onSuccess = [this, &getSaltResult]() {
+                    std::string password = passwordTextbox.value();
+                    std::string salt = getSaltResult.salt;
+                    std::string sha256 = Functions::SHA256(password + salt);
+
+                    loginFuture = Api::Login(emailTextbox.value(), sha256);
+                    signing = true;
+                };
+                auto onFailure = [&showLoadingAnimation = showLoadingAnimation]() { showLoadingAnimation = false; };
+                gettingSalt = false;
+
+                ApiResultHandler::Handle(apiResult, messenger, params, onSuccess, onFailure);
+            }
+        }
+
+        else if (signing)
         {
             if (loginFuture.wait_for(std::chrono::milliseconds(0)) == std::future_status::ready)
             {
                 auto loginResult = loginFuture.get();
                 auto apiResult = loginResult.result;
-                std::cout << apiResult << std::endl;
-                switch (apiResult) {
-                    case ApiResult::Success:
-                    {    
-                        auto pageData = pageManager.getPage(PageType::Home);
-                        HomePage* asHome = Page::As<HomePage>(pageData.first);
-                        asHome->setUserId(loginResult.userId);
-                        pageManager.switchTo(PageType::Home);
-                        break;
-                    }
-                    case ApiResult::UserNotActive:
-                        messenger.addMessage("Please activate your account first!");
-                        break;
-                    case ApiResult::InvalidCredentials:
-                        messenger.addMessage("Invalid credentials!");
-                        break;
-                    case ApiResult::UserNotFound:
-                        messenger.addMessage("This email is not registered!");
-                        break;
-                    case ApiResult::ValidationError:
-                        messenger.addMessage("This email is not valid1");
-                        break;
-                    case ApiResult::ServerError:
-                        messenger.addMessage("Server error!");
-                        break;
-                    case ApiResult::Unreachable:
-                        messenger.addMessage("Remote server is unreachable!");
-                        break;
-                    default:
-                        messenger.addMessage("Problem occured!");
-                        break;
-                }
-
+                auto params = ApiResultHandler::MessageParams();
+                auto onSuccess = [this, &loginResult]() {
+                    auto pageData = pageManager.getPage(PageType::Home);
+                    HomePage* home = Page::As<HomePage>(pageData.first);
+                    home->setAuthData(loginResult.authData);
+                    pageManager.switchTo(PageType::Home);
+                    Functions::SaveTokens(loginResult.authData);
+                };
                 signing = false;
                 showLoadingAnimation = false;
+
+                ApiResultHandler::Handle(apiResult, messenger, params, onSuccess);
+            }
+        }
+    }
+
+    void LoginPage::handle_login()
+    {
+        std::string email = emailTextbox.value();
+        std::string password = passwordTextbox.value();
+
+        Validator::Result emailValidationResult = Validator::ValidateEmail(email);
+        Validator::Result passwordValidationResult = Validator::ValidatePassword(password);
+
+        if (emailValidationResult == Validator::Result::Success && passwordValidationResult == Validator::Result::Success) {
+            getSaltFuture = Api::GetSalt(email);
+            gettingSalt = true;
+            showLoadingAnimation = true;
+        } else {
+            if (emailValidationResult != Validator::Result::Success) {
+                std::string errorMessage = Validator::GetErrorMessage(emailValidationResult);
+                messenger.addMessage(errorMessage);
+                emailTextbox.enableError(errorMessage);
+            } else if (passwordValidationResult != Validator::Result::Success) {
+                std::string errorMessage = Validator::GetErrorMessage(passwordValidationResult);
+                messenger.addMessage(errorMessage);
+                passwordTextbox.enableError(errorMessage);
             }
         }
     }

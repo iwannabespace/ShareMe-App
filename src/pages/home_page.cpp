@@ -1,18 +1,19 @@
 #include "../../include/pages/home_page.hpp"
 #include "../../include/utils/theme.hpp"
+#include <format>
 
 namespace ShareMe
 {
-    HomePage::HomePage(sf::Vector2f winSize, sf::Font& primaryFont, sf::Font& secondaryFont, PageManager& pageManager, Messenger& messenger)
-        : Page(pageManager, messenger),
+    HomePage::HomePage(sf::Vector2f winSize, sf::Font& primaryFont, sf::Font& secondaryFont, PageManager& pageManager, Messenger& messenger, SocketClient& client)
+        : Page(pageManager, messenger, client),
           primaryFont(primaryFont),
           secondaryFont(secondaryFont)
     {
         text.setFont(primaryFont);
-        text.setCharacterSize(26);
+        text.setCharacterSize(12);
         text.setFillColor(Theme::OnBackground);
         text.setString("No User ID");
-        text.setPosition({ 100, 100 });
+        text.setPosition({ 0, 0 });
     }
 
     HomePage::~HomePage()
@@ -62,10 +63,10 @@ namespace ShareMe
     {
     }
 
-    void HomePage::setUserId(const std::string& userId)
+    void HomePage::setAuthData(const AuthorizationData& authData)
     {
-        this->userId = userId;
-        text.setString(userId);
+        this->authData = authData;
+        text.setString(std::format("Access Token: {}\nRefresh Token: {}", authData.accessToken, authData.refreshToken));
     }
 
     void HomePage::draw(sf::RenderTarget& target, sf::RenderStates states) const

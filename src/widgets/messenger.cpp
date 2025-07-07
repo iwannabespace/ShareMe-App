@@ -48,13 +48,13 @@ namespace ShareMe
         messages.push({ message, duration, now });
     }
 
-    void Messenger::update(float deltaTime)
+    void Messenger::update()
     {
         if (animationShowStart) {
             float containerY = container.getPosition().y;
             if (containerY > intendedShowYPosition) {
-                container.move({ 0, -(animationSpeed * deltaTime)});
-                text.move({ 0, -(animationSpeed * deltaTime) });
+                container.move({ 0, -animationSpeed});
+                text.move({ 0, -animationSpeed });
             } else {
                 animationShowStart = false;
             }
@@ -82,8 +82,8 @@ namespace ShareMe
         } else if (animationEndStart) {
             float containerY = container.getPosition().y;
             if (containerY < intendedEndYPosition) {
-                container.move({ 0, animationSpeed * deltaTime });
-                text.move({ 0, animationSpeed * deltaTime });
+                container.move({ 0, animationSpeed });
+                text.move({ 0, animationSpeed });
             } else {
                 animationEndStart = false;
             }

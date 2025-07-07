@@ -8,6 +8,7 @@
 #include "../widgets/link_text.hpp"
 #include "../widgets/animations/loading_animation.hpp"
 #include "../api/api.hpp"
+#include "../socket/socket_client.hpp"
 #include <future>
 
 namespace ShareMe
@@ -15,7 +16,7 @@ namespace ShareMe
     class LoginPage : public Page
     {
     public:
-        LoginPage(sf::Vector2f winSize, sf::Font& primaryFont, sf::Font& secondaryFont, PageManager& pageManager, Messenger& messenger);
+        LoginPage(sf::Vector2f winSize, sf::Font& primaryFont, sf::Font& secondaryFont, PageManager& pageManager, Messenger& messenger, SocketClient& client);
         ~LoginPage();
         void on_window_resize(const sf::RenderWindow& window) override;
         void on_hover_items(const sf::RenderWindow& window) override;
@@ -27,6 +28,8 @@ namespace ShareMe
         void draw_render_texture() override;
         void animation_update() override;
         void on_login();
+    private:
+        void handle_login();
     private:
         void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
     private:
@@ -40,7 +43,9 @@ namespace ShareMe
         sf::Font& primaryFont;
         sf::Font& secondaryFont;
         std::future<LoginResult> loginFuture;
+        std::future<GetSaltResult> getSaltFuture;
         bool signing = false;
+        bool gettingSalt = false;
         bool showLoadingAnimation = false;
     };
 }

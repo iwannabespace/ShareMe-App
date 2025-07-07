@@ -12,12 +12,13 @@ namespace ShareMe
             sf::Color color, 
             sf::Color hovered_color, sf::Color focused_color, 
             sf::Color text_color, sf::Color placeholder_color)
-        : placeholder_str(placeholder), font(font), color(color), enabled_color(color),
+        : placeholder_str(placeholder), font(font), color(color), colorCopy(color), enabled_color(color),
             hovered_color(hovered_color), focused_color(focused_color), 
             cursor_index(0), maxCharacter(maxCharacter), focused(false), selected(false), numberOnly(numberOnly)
-    {
-        if (!renderer.create(size.x, size.y))
-            std::cerr << "Renderer couldn'be created!" << std::endl;
+    {   
+        if (size.x && size.y)
+            if (!renderer.create(size.x, size.y))
+                std::cerr << "Renderer couldn'be created!" << std::endl;
 
         container.setSize(size);
         container.setPosition(position);
@@ -29,6 +30,14 @@ namespace ShareMe
         text.setFillColor(text_color);
         text.setString("qwertyuıopğüasdfghjklşizxcvbnmöçQWERTYUIOPĞÜASDFGHJKLŞİZXCVBNMÖÇ");
         text.setCharacterSize(14);
+
+        errorText.setFont(font);
+        errorText.setFillColor(Theme::Error);
+        errorText.setCharacterSize(14);
+        errorText.setPosition({ 
+            container.getPosition().x, 
+            container.getPosition().y - text.getGlobalBounds().height - 16
+        });
 
         oneCharHeight = text.getGlobalBounds().height;
 
@@ -279,11 +288,14 @@ namespace ShareMe
         {
             if (!focused)
             {
-                if (container.getGlobalBounds().contains(sf::Vector2f(sf::Mouse::getPosition(window))))
-                    container.setOutlineColor(hovered_color);
-                
-                else
-                    container.setOutlineColor(sf::Color::Transparent);
+                if (!showError)
+                {
+                    if (container.getGlobalBounds().contains(sf::Vector2f(sf::Mouse::getPosition(window))))
+                        container.setOutlineColor(hovered_color);
+                    
+                    else
+                        container.setOutlineColor(sf::Color::Transparent);
+                }
             }
         }
     }
@@ -295,6 +307,9 @@ namespace ShareMe
             if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
             {   
                 bool contains = container.getGlobalBounds().contains(sf::Vector2f(sf::Mouse::getPosition(window)));
+                
+                if (showError)
+                    disableError();
 
                 if (contains && !focused)
                 {
@@ -353,6 +368,10 @@ namespace ShareMe
     void Textbox::setPosition(sf::Vector2f position)
     {
         container.setPosition(position);
+        errorText.setPosition({ 
+            position.x, 
+            position.y - text.getGlobalBounds().height - 16
+        });
     }   
 
     void Textbox::setSize(sf::Vector2f size)
@@ -374,6 +393,7 @@ namespace ShareMe
     void Textbox::setColor(sf::Color color)
     {
         this->color = color;
+        colorCopy = color;
         enabled_color = color;
     }
 
@@ -395,6 +415,21 @@ namespace ShareMe
     void Textbox::setPlaceholderColor(sf::Color color)
     {
         placeholder_text.setFillColor(color);
+    }
+
+    void Textbox::enableError(const std::string& errorMessage)
+    {
+        errorText.setString(errorMessage);
+        container.setOutlineColor(Theme::OnError);
+        color = Theme::Error;
+        showError = true;
+    }
+
+    void Textbox::disableError()
+    {
+        container.setOutlineColor(sf::Color::Transparent);
+        color = colorCopy;
+        showError = false;
     }
 
     sf::Vector2f Textbox::getPosition() const
@@ -423,13 +458,14 @@ namespace ShareMe
 
     bool Textbox::is_number(const std::string& str) const
     {
-        return std::all_of(str.begin(), str.end(), [](char c) {
-            return std::isdigit(c);
-        });
+        return std::all_of(str.begin(), str.end(), ::isdigit);
     }
 
     void Textbox::draw(sf::RenderTarget& target, sf::RenderStates states) const
     {
         target.draw(container, states);
+
+        if (showError)
+            target.draw(errorText, states);
     }
 }

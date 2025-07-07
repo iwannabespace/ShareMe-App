@@ -9,8 +9,10 @@
 #include "../include/utils/functions.hpp"
 #include "../include/pages/page.hpp"
 #include "../include/widgets/messenger.hpp"
+#include "../include/utils/constants.hpp"
 
 #include <iostream>
+#include <format>
 
 namespace ShareMe
 { 
@@ -22,7 +24,7 @@ namespace ShareMe
         window.create(sf::VideoMode(size.x, size.y), "ShareMe", sf::Style::Close, settings);
         window.setVerticalSyncEnabled(true);
     }
-
+    
     App::~App()
     {
     }
@@ -39,13 +41,19 @@ namespace ShareMe
         sf::Font& courierPrimeRegular = *fontManager.get("courier-prime-regular").value();
 
         Messenger messenger(winSize, courierPrimeRegular);
+        SocketClient client(Constants::socketServerUrl, Constants::socketServerPort);
 
         PageManager pageManager;
-        pageManager.addPage(std::make_pair(new LoginPage(winSize, spaceMonoRegular, courierPrimeRegular, pageManager, messenger), PageType::Login));
-        pageManager.addPage(std::make_pair(new RegisterPage(winSize, spaceMonoRegular, courierPrimeRegular, pageManager, messenger), PageType::Register));
-        pageManager.addPage(std::make_pair(new HomePage(winSize, spaceMonoRegular, courierPrimeRegular, pageManager, messenger), PageType::Home));
+        pageManager.addPage(std::make_pair(new LoginPage(winSize, spaceMonoRegular, courierPrimeRegular, pageManager, messenger, client), PageType::Login));
+        pageManager.addPage(std::make_pair(new RegisterPage(winSize, spaceMonoRegular, courierPrimeRegular, pageManager, messenger, client), PageType::Register));
+        pageManager.addPage(std::make_pair(new HomePage(winSize, spaceMonoRegular, courierPrimeRegular, pageManager, messenger, client), PageType::Home));
 
         sf::Clock clock;
+
+        if (!client.connect())
+        {
+            std::cout << "Connection so socket client failed!" << std::endl;
+        }
 
         while (window.isOpen())
         {
@@ -96,7 +104,7 @@ namespace ShareMe
                 //HomePage* asHome = Page::As<HomePage>(activePage);
             }
 
-            messenger.update(deltaTime);
+            messenger.update();
 
             window.clear(Theme::Background);
             window.draw(*activePage);

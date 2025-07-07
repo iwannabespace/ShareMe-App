@@ -8,8 +8,8 @@
 
 namespace ShareMe
 {
-    RegisterPage::RegisterPage(sf::Vector2f winSize, sf::Font& primaryFont, sf::Font& secondaryFont, PageManager& pageManager, Messenger& messenger)
-        : Page(pageManager, messenger),
+    RegisterPage::RegisterPage(sf::Vector2f winSize, sf::Font& primaryFont, sf::Font& secondaryFont, PageManager& pageManager, Messenger& messenger, SocketClient& client)
+        : Page(pageManager, messenger, client),
           emailTextbox(secondaryFont, "Email"),
           usernameTextbox(secondaryFont, "Username"),
           passwordTextbox(secondaryFont, "Password"),
@@ -100,30 +100,7 @@ namespace ShareMe
             }
         });
 
-        registerButton.setCallback([this, textboxWidth, textboxHeight, textboxPositionX]() {
-            if (!this->showVerification) {
-                auto email = this->emailTextbox.value();
-                auto username = this->usernameTextbox.value();
-                auto password = this->passwordTextbox.value();
-
-                if (!email.empty() && !username.empty() && !password.empty()) {
-                    this->registerFuture = Api::Register(email, username, password);
-                    this->registering = true;
-                    this->showLoadingAnimation = true;   
-                } else {
-                    this->messenger.addMessage("All fields are required!");
-                }
-            } else {
-                std::string code = this->verificationTextbox.value();
-                if (code.length() == 6) {
-                    this->verifyFuture = Api::Verify(code);
-                    this->verifying = true;
-                    this->showLoadingAnimation = true;
-                } else {
-                    this->messenger.addMessage("Verification code must be 6 digits long!");
-                }
-            }
-        });
+        registerButton.setCallback([this]() { this->handle_register(); });
     }
 
     RegisterPage::~RegisterPage()
@@ -224,38 +201,21 @@ namespace ShareMe
         {
             if (registerFuture.wait_for(std::chrono::milliseconds(0)) == std::future_status::ready)
             {
-                auto result = registerFuture.get();
-                switch (result) {
-                    case ApiResult::Success:
-                        registerButton.setPosition({
-                            registerButton.getPosition().x, 
-                            verificationTextbox.getPosition().y + verificationTextbox.getSize().y + 20
-                        });
-                        registerButton.setText("Verify");
-                        showVerification = true;
-                        break;
-                    case ApiResult::InvalidMail:
-                        emailTextbox.setColor(Theme::ErrorContainer);
-                        break;
-                    case ApiResult::ServerError:
-                        messenger.addMessage("Server error!");
-                        break;
-                    case ApiResult::ValidationError:
-                        messenger.addMessage("One of the inputs is invalid!");
-                        break;
-                    case ApiResult::UserExists:
-                        messenger.addMessage("This email already exists!");
-                        break;
-                    case ApiResult::Unreachable:
-                        messenger.addMessage("Remote server is unreachable!");
-                        break;
-                    default:
-                        messenger.addMessage("Problem occured!");
-                        break;
-                }
-
+                auto apiResult = registerFuture.get();
+                auto params = ApiResultHandler::MessageParams();
+                auto onSuccess = [this, &apiResult]() {
+                    registerButton.setPosition({
+                        registerButton.getPosition().x, 
+                        verificationTextbox.getPosition().y + verificationTextbox.getSize().y + 20
+                    });
+                    registerButton.setText("Verify");
+                    showVerification = true;
+                };
+                
                 registering = false;
                 showLoadingAnimation = false;
+
+                ApiResultHandler::Handle(apiResult, messenger, params, onSuccess);
             }
         }
     }
@@ -266,44 +226,55 @@ namespace ShareMe
         {
             if (verifyFuture.wait_for(std::chrono::milliseconds(0)) == std::future_status::ready)
             {
-                auto result = verifyFuture.get();
-                switch (result) {
-                    case ApiResult::Success:
-                        messenger.addMessage("Verification successful!");
-                        pageManager.switchTo(PageType::Login);
-                        registerButton.setPosition({
-                            registerButton.getPosition().x, 
-                            passwordTextbox.getPosition().y + passwordTextbox.getSize().y + 20
-                        });
-                        registerButton.setText("Register");
-                        emailTextbox.clear();
-                        usernameTextbox.clear();
-                        passwordTextbox.clear();
-                        verificationTextbox.clear();
-                        showVerification = false;
-                        break;
-                    case ApiResult::VerificationError:
-                        messenger.addMessage("Verification code is invalid!");
-                        break;
-                    case ApiResult::UserNotFound:
-                        messenger.addMessage("This code is available but not assigned to any email!");
-                        break;
-                    case ApiResult::ServerError:
-                        messenger.addMessage("Server error!");
-                        break;
-                    case ApiResult::ValidationError:
-                        messenger.addMessage("One of the inputs is invalid!");
-                        break;
-                    case ApiResult::Unreachable:
-                        messenger.addMessage("Remote server is unreachable!");
-                        break;
-                    default:
-                        messenger.addMessage("Problem occured!");
-                        break;
-                }
+                auto apiResult = verifyFuture.get();
+                auto params = ApiResultHandler::MessageParams();
+                auto onSuccess = [this, &apiResult]() {
+                    messenger.addMessage("Verification successful!");
+                    pageManager.switchTo(PageType::Login);
+                    registerButton.setPosition({
+                        registerButton.getPosition().x, 
+                        passwordTextbox.getPosition().y + passwordTextbox.getSize().y + 20
+                    });
+                    registerButton.setText("Register");
+                    emailTextbox.clear();
+                    usernameTextbox.clear();
+                    passwordTextbox.clear();
+                    verificationTextbox.clear();
+                    showVerification = false;
+                };
                 
                 verifying = false;
                 showLoadingAnimation = false;
+
+                ApiResultHandler::Handle(apiResult, messenger, params, onSuccess);
+            }
+        }
+    }
+
+    void RegisterPage::handle_register()
+    {
+        if (!showVerification) {
+            auto email = emailTextbox.value();
+            auto username = usernameTextbox.value();
+            auto password = passwordTextbox.value();
+
+            if (!email.empty() && !username.empty() && !password.empty()) {
+                std::string salt = Functions::GenerateSalt(16);
+                std::string sha256 = Functions::SHA256(password + salt);
+                registerFuture = Api::Register(email, username, sha256, salt);
+                registering = true;
+                showLoadingAnimation = true;   
+            } else {
+                messenger.addMessage("All fields are required!");
+            }
+        } else {
+            std::string code = verificationTextbox.value();
+            if (code.length() == 6) {
+                verifyFuture = Api::Verify(code);
+                verifying = true;
+                showLoadingAnimation = true;
+            } else {
+                messenger.addMessage("Verification code must be 6 digits long!");
             }
         }
     }
