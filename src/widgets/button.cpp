@@ -8,7 +8,7 @@ namespace ShareMe
             sf::Color color, 
             sf::Color borderColor, 
             sf::Color textColor)
-        : outlineColor(borderColor)
+        : outlineColor(borderColor), text(font)
     {
         body.setSize(size);
         body.setPosition(position);
@@ -17,13 +17,12 @@ namespace ShareMe
         body.setOutlineThickness(1);
         body.setRadius(borderRadius);
 
-        text.setFont(font);
         text.setString(str);
         text.setCharacterSize(12);
         text.setFillColor(textColor);
         text.setPosition({
-            Functions::GetMiddle(text.getGlobalBounds().width, size.x, position.x, 0),
-            Functions::GetMiddle(text.getGlobalBounds().height, size.y, position.y, text.getGlobalBounds().top),
+            Functions::GetMiddle(text.getGlobalBounds().size.x, size.x, position.x, 0),
+            Functions::GetMiddle(text.getGlobalBounds().size.y, size.y, position.y, text.getGlobalBounds().position.y),
         });
     }
 
@@ -51,8 +50,8 @@ namespace ShareMe
     {
         body.setPosition(position);
         text.setPosition({
-            Functions::GetMiddle(text.getGlobalBounds().width, body.getSize().x, body.getPosition().x, 0),
-            Functions::GetMiddle(text.getGlobalBounds().height, body.getSize().y, body.getPosition().y, text.getLocalBounds().top),
+            Functions::GetMiddle(text.getGlobalBounds().size.x, body.getSize().x, body.getPosition().x, 0),
+            Functions::GetMiddle(text.getGlobalBounds().size.y, body.getSize().y, body.getPosition().y, text.getLocalBounds().position.y),
         });
     }
 
@@ -60,8 +59,8 @@ namespace ShareMe
     {
         body.setSize(size);
         text.setPosition({
-            Functions::GetMiddle(text.getGlobalBounds().width, body.getSize().x, body.getPosition().x, 0),
-            Functions::GetMiddle(text.getGlobalBounds().height, body.getSize().y, body.getPosition().y, text.getGlobalBounds().top),
+            Functions::GetMiddle(text.getGlobalBounds().size.x, body.getSize().x, body.getPosition().x, 0),
+            Functions::GetMiddle(text.getGlobalBounds().size.y, body.getSize().y, body.getPosition().y, text.getGlobalBounds().position.y),
         });
     }
 

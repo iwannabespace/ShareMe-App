@@ -14,7 +14,9 @@ namespace ShareMe
           loginButton(secondaryFont, "Login", 8),
           registerLink(secondaryFont),
           primaryFont(primaryFont), 
-          secondaryFont(secondaryFont)
+          secondaryFont(secondaryFont),
+          title(primaryFont),
+          description(primaryFont)
     {
         float width = winSize.x;
         float height = winSize.y;
@@ -43,17 +45,16 @@ namespace ShareMe
         registerLink.setColor(Theme::OnBackground);
         registerLink.setString("You don't have an account? Register here!");
         registerLink.setPosition({
-            Functions::GetMiddle(registerLink.getGlobalBounds().width, width, 0, 0), 
-            height - registerLink.getGlobalBounds().height - 75
+            Functions::GetMiddle(registerLink.getGlobalBounds().size.x, width, 0, 0), 
+            height - registerLink.getGlobalBounds().size.y - 75
         });
 
         loadingAnimation.setColor(Theme::OnBackground);
         loadingAnimation.setPosition({
-            Functions::GetMiddle(loadingAnimation.getGlobalBounds().width, width, 0, loadingAnimation.getGlobalBounds().left) - 15,
+            Functions::GetMiddle(loadingAnimation.getGlobalBounds().size.x, width, 0, loadingAnimation.getGlobalBounds().position.x) - 15,
             loginButton.getPosition().y + loginButton.getSize().y + 50,
         });
 
-        title.setFont(primaryFont);
         title.setString("Login");
         title.setCharacterSize(32);
         title.setFillColor(Theme::OnBackground);
@@ -63,14 +64,13 @@ namespace ShareMe
             emailTextbox.getPosition().y - 150
         });
 
-        description.setFont(primaryFont);
         description.setString("Share your thoughts with us!");
         description.setCharacterSize(16);
         description.setFillColor(Theme::OnBackground);
         description.setStyle(sf::Text::Italic);
         description.setPosition({
             textboxPositionX,
-            title.getPosition().y + title.getGlobalBounds().height + 20
+            title.getPosition().y + title.getGlobalBounds().size.y + 20
         });
 
         registerLink.setCallback([&pageManager = this->pageManager]() {

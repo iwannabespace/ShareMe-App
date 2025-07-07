@@ -3,13 +3,12 @@
 namespace ShareMe
 {
     LinkText::LinkText(sf::Font& font)
-        : font(font)
+        : font(font), text(font)
     {
-        text.setFont(font);
     }
 
     LinkText::LinkText(sf::Font& font, const std::string& str)
-        : font(font), text(str, font)
+        : font(font), text(font, str)
     {
     }
 

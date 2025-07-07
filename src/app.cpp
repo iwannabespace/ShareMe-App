@@ -19,9 +19,9 @@ namespace ShareMe
     App::App(sf::Vector2f size)
     {
         sf::ContextSettings settings;
-        settings.antialiasingLevel = 8;
+        settings.antiAliasingLevel = 8;
 
-        window.create(sf::VideoMode(size.x, size.y), "ShareMe", sf::Style::Close, settings);
+        window = sf::RenderWindow(sf::VideoMode(sf::Vector2u(size.x, size.y)), "ShareMe", sf::State::Windowed, settings);
         window.setVerticalSyncEnabled(true);
     }
     
@@ -59,30 +59,21 @@ namespace ShareMe
         {
             auto activePageData = pageManager.getActivePage();
             auto activePage = activePageData.first;
-            sf::Event event;
 
-            while (window.pollEvent(event))
+            while (const auto event = window.pollEvent())
             {
-                switch (event.type)
-                {
-                case sf::Event::Closed:
+                if (event->is<sf::Event::Closed>()) {
                     window.close();
-                    break;
-                case sf::Event::Resized:
-                    break;
-                case sf::Event::MouseButtonReleased:
+                } else if (event->is<sf::Event::Resized>()) {
+
+                } else if (event->is<sf::Event::MouseButtonReleased>()) {
                     activePage->on_event_click_items(window);
-                    break;
-                case sf::Event::MouseWheelScrolled:
-                    break;
-                case sf::Event::TextEntered:
-                    activePage->on_text_entered(event.text.unicode);
-                    break;
-                case sf::Event::KeyPressed:
-                    activePage->on_key_pressed(event.key.code);
-                    break;
-                default:
-                    break;
+                } else if (event->is<sf::Event::MouseWheelScrolled>()) {
+                    
+                } else if (const auto* textEntered = event->getIf<sf::Event::TextEntered>()) {
+                    activePage->on_text_entered(textEntered->unicode);
+                } else if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>()) {
+                    activePage->on_key_pressed(keyPressed->code);
                 }
             }
 

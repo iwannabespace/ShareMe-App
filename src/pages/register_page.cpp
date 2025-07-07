@@ -17,7 +17,9 @@ namespace ShareMe
           registerButton(secondaryFont, "Register", 8),
           loginLink(secondaryFont),
           primaryFont(primaryFont), 
-          secondaryFont(secondaryFont)
+          secondaryFont(secondaryFont),
+          title(primaryFont),
+          description(primaryFont)
     {
         float width = winSize.x;
         float height = winSize.y;
@@ -58,17 +60,16 @@ namespace ShareMe
         loginLink.setColor(Theme::OnBackground);
         loginLink.setString("You already have an account? Login here!");
         loginLink.setPosition({
-            Functions::GetMiddle(loginLink.getGlobalBounds().width, width, 0, 0), 
-            height - loginLink.getGlobalBounds().height - 75
+            Functions::GetMiddle(loginLink.getGlobalBounds().size.x, width, 0, 0), 
+            height - loginLink.getGlobalBounds().size.y - 75
         });
 
         loadingAnimation.setColor(Theme::OnBackground);
         loadingAnimation.setPosition({
-            Functions::GetMiddle(loadingAnimation.getGlobalBounds().width, width, 0, loadingAnimation.getGlobalBounds().left) - 15,
+            Functions::GetMiddle(loadingAnimation.getGlobalBounds().size.x, width, 0, loadingAnimation.getGlobalBounds().position.x) - 15,
             registerButton.getPosition().y + registerButton.getSize().y + 50,
         });
 
-        title.setFont(primaryFont);
         title.setString("Register");
         title.setCharacterSize(32);
         title.setFillColor(Theme::OnBackground);
@@ -78,14 +79,13 @@ namespace ShareMe
             emailTextbox.getPosition().y - 150
         });
 
-        description.setFont(primaryFont);
         description.setString("Become a member of the community!");
         description.setCharacterSize(16);
         description.setFillColor(Theme::OnBackground);
         description.setStyle(sf::Text::Italic);
         description.setPosition({
             textboxPositionX,
-            title.getPosition().y + title.getGlobalBounds().height + 20
+            title.getPosition().y + title.getGlobalBounds().size.y + 20
         });
 
         loginLink.setCallback([this]() {

@@ -7,9 +7,9 @@ namespace ShareMe
     HomePage::HomePage(sf::Vector2f winSize, sf::Font& primaryFont, sf::Font& secondaryFont, PageManager& pageManager, Messenger& messenger, SocketClient& client)
         : Page(pageManager, messenger, client),
           primaryFont(primaryFont),
-          secondaryFont(secondaryFont)
+          secondaryFont(secondaryFont),
+          text(primaryFont)
     {
-        text.setFont(primaryFont);
         text.setCharacterSize(12);
         text.setFillColor(Theme::OnBackground);
         text.setString("No User ID");

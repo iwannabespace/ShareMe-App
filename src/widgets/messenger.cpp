@@ -6,14 +6,13 @@
 namespace ShareMe
 {
     Messenger::Messenger(sf::Vector2f winSize, sf::Font& font)
-        : font(font)
+        : font(font), text(font)
     {
         float containerHeight = 35;
         container.setSize({ winSize.x, containerHeight });
         container.setFillColor(Theme::PrimaryContainer);
         container.setPosition({ 0, winSize.y });
 
-        text.setFont(font);
         text.setCharacterSize(12);
         text.setFillColor(Theme::OnPrimaryContainer);
 

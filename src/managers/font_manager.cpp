@@ -12,7 +12,7 @@ namespace ShareMe
 
     bool FontManager::load(const std::string& path, const std::string& name)
     {
-        return fonts[name].loadFromFile(path);
+        return fonts[name].openFromFile(path);
     }
 
     std::optional<sf::Font*> FontManager::get(const std::string& name)

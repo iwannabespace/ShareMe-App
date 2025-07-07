@@ -4,9 +4,9 @@
 namespace ShareMe
 {
     LoadingAnimation::LoadingAnimation()
+        : text(font)
     {
-        font.loadFromFile("fonts/meiryo_boot.ttf");
-        text.setFont(font);
+        font.openFromFile("fonts/meiryo_boot.ttf");
         std::wstring str;
         str += currentValue;
         text.setString(str);

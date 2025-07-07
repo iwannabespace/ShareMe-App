@@ -20,7 +20,7 @@ namespace ShareMe
             {
                 text.setCharacterSize(i);
                 
-                auto tSize = text.getGlobalBounds().getSize();
+                auto tSize = text.getGlobalBounds().size;
                 
                 if (tSize.x >= size.x || tSize.y >= size.y)
                 {
@@ -37,12 +37,11 @@ namespace ShareMe
 
         float GetTextMaxHeight(const sf::Text& text)
         {
-            sf::Text temp;
-            temp.setFont(*text.getFont());
+            sf::Text temp(text.getFont());
             temp.setString("qwertyuıopğüasdfghjklşizxcvbnmöçQWERTYUIOPĞÜASDFGHJKLŞİZXCVBNMÖÇ");
             temp.setCharacterSize(text.getCharacterSize());
             
-            return temp.getGlobalBounds().height;
+            return temp.getGlobalBounds().size.y;
         }
 
         std::string GenerateSalt(size_t length) 

@@ -14,10 +14,11 @@ namespace ShareMe
             sf::Color text_color, sf::Color placeholder_color)
         : placeholder_str(placeholder), font(font), color(color), colorCopy(color), enabled_color(color),
             hovered_color(hovered_color), focused_color(focused_color), 
-            cursor_index(0), maxCharacter(maxCharacter), focused(false), selected(false), numberOnly(numberOnly)
+            cursor_index(0), maxCharacter(maxCharacter), focused(false), selected(false), numberOnly(numberOnly), 
+            text(font), placeholder_text(font), errorText(font)
     {   
         if (size.x && size.y)
-            if (!renderer.create(size.x, size.y))
+            if (!renderer.resize(sf::Vector2u(size.x, size.y)))
                 std::cerr << "Renderer couldn'be created!" << std::endl;
 
         container.setSize(size);
@@ -26,39 +27,36 @@ namespace ShareMe
         container.setOutlineThickness(border_width);
         container.setRadius(borderRadius);
 
-        text.setFont(font);
         text.setFillColor(text_color);
         text.setString("qwertyuıopğüasdfghjklşizxcvbnmöçQWERTYUIOPĞÜASDFGHJKLŞİZXCVBNMÖÇ");
         text.setCharacterSize(14);
 
-        errorText.setFont(font);
         errorText.setFillColor(Theme::Error);
         errorText.setCharacterSize(14);
         errorText.setPosition({ 
             container.getPosition().x, 
-            container.getPosition().y - text.getGlobalBounds().height - 16
+            container.getPosition().y - text.getGlobalBounds().size.y - 16
         });
 
-        oneCharHeight = text.getGlobalBounds().height;
+        oneCharHeight = text.getGlobalBounds().size.y;
 
         //Functions::FitText(text, size);
 
         text_pos = {
             5,
-            Functions::GetMiddle(text.getGlobalBounds().height, container.getSize().y, 0, text.getGlobalBounds().top)
+            Functions::GetMiddle(text.getGlobalBounds().size.y, container.getSize().y, 0, text.getGlobalBounds().position.y)
         };
 
         text.setPosition(text_pos);
         text.setString("W");
 
-        oneCharWidth = text.getGlobalBounds().width;
+        oneCharWidth = text.getGlobalBounds().size.x;
         
-        cover.setSize({ 50, text.getGlobalBounds().height + 15});
+        cover.setSize({ 50, text.getGlobalBounds().size.y + 15});
         cover.setPosition({ text_pos.x, std::round(((size.y - cover.getSize().y) / 2))});
         cover.setFillColor(sf::Color::Transparent);
         text.setString(def + "_"); 
 
-        placeholder_text.setFont(font);
         placeholder_text.setString(placeholder_str);
         placeholder_text.setCharacterSize(text.getCharacterSize());
         placeholder_text.setPosition(text_pos);
@@ -86,7 +84,7 @@ namespace ShareMe
                     if (((maxCharacter.has_value() && string.getSize() - 1 < maxCharacter.value()) || (!maxCharacter.has_value())) &&
                         ((numberOnly && std::isdigit(character)) || !(numberOnly)))
                     {    
-                        string.insert(cursor_index, character);
+                        string.insert(cursor_index, static_cast<char>(character));
                 
                         cursor_index++;
                         added = true;
@@ -118,7 +116,7 @@ namespace ShareMe
 
                 text.setString(string);
 
-                if (text.getGlobalBounds().width >= container.getSize().x)
+                if (text.getGlobalBounds().size.x >= container.getSize().x)
                 {
                     if (added)
                     {
@@ -130,7 +128,7 @@ namespace ShareMe
 
                     if (deleted)
                     {     
-                        if (text.getGlobalBounds().width >= container.getSize().x)
+                        if (text.getGlobalBounds().size.x >= container.getSize().x)
                             text.move({ oneCharWidth, 0});
 
                         if (text.getPosition().x > text_pos.x)
@@ -152,7 +150,7 @@ namespace ShareMe
         {
             if (focused)
             {
-                if (sf::Keyboard::isKeyPressed(sf::Keyboard::LSystem) && sf::Keyboard::isKeyPressed(sf::Keyboard::BackSpace))
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LSystem) && sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Backspace))
                 {
                     if (string != "_")
                     {
@@ -166,18 +164,18 @@ namespace ShareMe
                     }
                 }
                 
-                if (sf::Keyboard::isKeyPressed(sf::Keyboard::LSystem) && sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LSystem) && sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A))
                 {
                     if (!selected && string.getSize() > 1)
                     {
                         cover.setFillColor(sf::Color(72, 98, 136));
                         cover.setPosition({ text.getPosition().x, cover.getPosition().y });
-                        cover.setSize({ text.getGlobalBounds().width + text.getLocalBounds().left, cover.getSize().y });
+                        cover.setSize({ text.getGlobalBounds().size.x + text.getLocalBounds().position.x, cover.getSize().y });
                         selected = true;
                     }
                 }
                 
-                if (sf::Keyboard::isKeyPressed(sf::Keyboard::LSystem) && sf::Keyboard::isKeyPressed(sf::Keyboard::C))
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LSystem) && sf::Keyboard::isKeyPressed(sf::Keyboard::Key::C))
                 {
                     if (selected)
                     {
@@ -187,7 +185,7 @@ namespace ShareMe
                     }
                 }
                 
-                if (sf::Keyboard::isKeyPressed(sf::Keyboard::LSystem) && sf::Keyboard::isKeyPressed(sf::Keyboard::V))
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LSystem) && sf::Keyboard::isKeyPressed(sf::Keyboard::Key::V))
                 {
                     sf::String to_copy = sf::Clipboard::getString();
 
@@ -205,7 +203,7 @@ namespace ShareMe
                     text.setString(string);
                 }
 
-                if (sf::Keyboard::isKeyPressed(sf::Keyboard::LSystem) && sf::Keyboard::isKeyPressed(sf::Keyboard::X))
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LSystem) && sf::Keyboard::isKeyPressed(sf::Keyboard::Key::X))
                 {
                     if (selected)
                     {
@@ -304,7 +302,7 @@ namespace ShareMe
     {
         if (enabled)
         {
-            if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
+            if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left))
             {   
                 bool contains = container.getGlobalBounds().contains(sf::Vector2f(sf::Mouse::getPosition(window)));
                 
@@ -370,14 +368,14 @@ namespace ShareMe
         container.setPosition(position);
         errorText.setPosition({ 
             position.x, 
-            position.y - text.getGlobalBounds().height - 16
+            position.y - text.getGlobalBounds().size.y - 16
         });
     }   
 
     void Textbox::setSize(sf::Vector2f size)
     {
         container.setSize(size);
-        renderer.create(size.x, size.y);
+        renderer.resize(sf::Vector2u(size.x, size.y));
 
         text_pos = {
             5,
